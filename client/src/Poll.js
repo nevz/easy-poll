@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react'
+import {
+    useParams
+  } from "react-router-dom";
 
 function Poll(props){
 
-    var pollId = props.id;
+    var {pollId} = useParams();
     const [poll, setPoll] = useState({});
-
-    const listAlternatives = (poll.alternatives || []).map((alternative, index) => 
-    <li key={"alternativex" + index}>
-        {alternative}
-    </li>    
-    );
 
     useEffect(() => {
         fetch(`http://localhost:9000/poll/${pollId}`)
@@ -23,6 +20,11 @@ function Poll(props){
         if(props.mode==="vote"){
             return(
                 <VotePoll poll={poll} />
+            )
+        }
+        else if(props.mode==="results"){
+            return(
+                <ResultsPoll poll={poll} />
             )
         }
         return (
@@ -49,7 +51,7 @@ function DisplayPoll(props){
             <p>Alternatives:</p>
             <ul>{listAlternatives}</ul>
         </div>
-    )
+    );
 }
 
 function VotePoll(props){
@@ -61,8 +63,6 @@ function VotePoll(props){
     );
 
     function onSubmit(event){
-        event.preventDefault();
-        console.log("submitted" + event.target.alternativevote.value);
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -86,6 +86,41 @@ function VotePoll(props){
             <button type="submit">Submit</button>
 
             </form>
+        </div>
+        )
+}
+
+function ResultsPoll(props){
+
+    const [answers, setAnswers] = useState([])
+
+
+    useEffect(() => {
+        fetch(`http://localhost:9000/poll/${props.poll.id}/result`)
+        .then(response => response.json())
+        .then(data => setAnswers(data));
+        console.log(props.poll.id)
+    }, [props.poll.id]);
+
+    function listAlternativesResults(){
+        var zipped = (props.poll.alternatives || []).map((alt, i) => [alt, answers[i]]);
+        const ans = zipped.map(([alt,num], index) =>  
+        <li key={"alternativevote" + index}>
+          {alt}: {num}
+        </li> );
+  
+        //console.log(ans)
+        return ans;
+            
+    }   
+
+    return(
+        <div>
+            <p>Question: {props.poll.question}</p>
+            <ul>
+                {listAlternativesResults()}
+            </ul>
+
         </div>
         )
 }

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Poll } from './'
+import {
+    Link
+  } from "react-router-dom";
 
 function NewPoll() {
-    const [postData, setPostData] = useState({});
+    const [postData, setPostData] = useState(null);
     
     const [question, setQuestion] = useState("");
     const [alternatives, setAlternatives] = useState(["Alternative A", "Alternative B", "Alternative C"])
@@ -18,7 +20,6 @@ function NewPoll() {
         var newAlternatives = [...alternatives];
         newAlternatives.splice(index, 1);
         setAlternatives([...newAlternatives])
-
     }
 
         function alternativeChange(event, index){
@@ -54,13 +55,26 @@ function NewPoll() {
             });
     }
 
-    return (
-        <div>
+    function getPostedQuestion(){
+        if(postData){
+            return(
+                <div>
             <p>You just posted:</p>
             <p>{postData.question}</p>
             <ul>{ (postData.alternatives || []).map((alternative, index)=>
                 <li key={alternative+index}>{alternative}</li>)}
             </ul>
+            Here is the link to vote: <Link to={postData.id + "/vote"}>Link</Link>
+                </div>
+            )
+        }
+        return(<div></div>)
+    }
+
+    return (
+        <div>
+            {getPostedQuestion()}
+            
             <form onSubmit={makePostRequest}>
                 <label>
                     Question:
@@ -71,8 +85,6 @@ function NewPoll() {
 
                 <input type="submit" value="Submit"/>
             </form>
-            <Poll id={postData.id || 1} mode="vote" />
-
         </div>
     );
 }

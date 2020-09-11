@@ -43,14 +43,18 @@ router.post('/:pollId/reset', (req, res) => {
 
 
 router.get('/:pollId/result', (req, res) => {
+
     const id = req.params.pollId
     var poll = req.context.models.polls[id];
+    if(!poll){
+        return res.send([]);
+    }
     const n = poll.alternatives.length
-
     var answers = new Array(n).fill(0);
     for (const [user, vote] of Object.entries(poll.votes)) {
         answers[vote] += 1
     }
+
     return res.send(answers);
 });
 
