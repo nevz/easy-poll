@@ -24,16 +24,10 @@ function App() {
   }, [])
 
   return (
-    <div>
-      <h3 className="p-3 text-center">Easy Polls</h3>
+    <div className="App">
+      <h3>Easy Polls</h3>
       <Router>
       <Switch>
-                <Route path="/vote">
-                  <Poll mode="vote" id="1" />
-                </Route>
-                <Route path="/poll">
-                  <Poll mode="results" id="1" />
-                </Route>
                 <Route path={`/:pollId/vote`}>
                   <Poll mode="vote"/>
                 </Route>

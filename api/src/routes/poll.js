@@ -37,14 +37,20 @@ router.post('/:pollId/vote', (req, res) => {
 router.post('/:pollId/reset', (req, res) => {
     const id = req.params.pollId
     var updatedPoll = req.context.models.polls[id];
+
+    if(!updatedPoll){
+        return res.send({});
+    }
+
     updatedPoll.votes = {};
+    req.context.models.polls[id] = updatedPoll;
     return res.send(req.context.models.polls[id]);
 });
 
 
 router.get('/:pollId/result', (req, res) => {
 
-    const id = req.params.pollId
+    const id = req.params.pollId;
     var poll = req.context.models.polls[id];
     if(!poll){
         return res.send([]);

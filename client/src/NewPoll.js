@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
     Link
   } from "react-router-dom";
+import { APIURL } from './constants';
 
 function NewPoll() {
     const [postData, setPostData] = useState(null);
@@ -48,7 +49,7 @@ function NewPoll() {
                 alternatives: alternatives
             })
         };
-        fetch('http://localhost:9000/poll', requestOptions)
+        fetch(APIURL, requestOptions)
             .then(response => response.json())
             .then(data => {
                 setPostData(data)
@@ -58,14 +59,15 @@ function NewPoll() {
     function getPostedQuestion(){
         if(postData){
             return(
-                <div>
-            <p>You just posted:</p>
-            <p>{postData.question}</p>
-            <ul>{ (postData.alternatives || []).map((alternative, index)=>
-                <li key={alternative+index}>{alternative}</li>)}
-            </ul>
-            Here is the link to vote: <Link to={postData.id + "/vote"}>Link</Link>
-                </div>
+            <div>
+                <p>You just posted:</p>
+                <p>{postData.question}</p>
+                <ul>{ (postData.alternatives || []).map((alternative, index)=>
+                    <li key={alternative+index}>{alternative}</li>)}
+                </ul>
+                <Link to={postData.id + "/vote"}>Vote here</Link><br/>
+                <Link to={postData.id + "/results"}>See results here</Link>
+            </div>
             )
         }
         return(<div></div>)

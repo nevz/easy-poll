@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react'
 import {
     useParams
   } from "react-router-dom";
+import { APIURL } from './constants';
+import './Poll.css';
+
 
 function Poll(props){
 
@@ -9,7 +12,7 @@ function Poll(props){
     const [poll, setPoll] = useState({});
 
     useEffect(() => {
-        fetch(`http://localhost:9000/poll/${pollId}`)
+        fetch(APIURL + "/" + pollId)
         .then(response => response.json())
         .then(data => {
             setPoll(data);
@@ -19,7 +22,7 @@ function Poll(props){
     function displayPoll(){
         if(props.mode==="vote"){
             return(
-                <VotePoll poll={poll} />
+                <VotePoll poll={poll} /> 
             )
         }
         else if(props.mode==="results"){
@@ -63,6 +66,7 @@ function VotePoll(props){
     );
 
     function onSubmit(event){
+        event.preventDefault();
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -71,7 +75,7 @@ function VotePoll(props){
                 vote: event.target.alternativevote.value
             })
         };
-        fetch(`http://localhost:9000/poll/${props.poll.id}/vote`, requestOptions)
+        fetch(APIURL + props.poll.id + "/vote", requestOptions)
             .then(response => response.json());
 
     }
@@ -95,11 +99,14 @@ function ResultsPoll(props){
     const [answers, setAnswers] = useState([])
 
 
-    useEffect(() => {
-        fetch(`http://localhost:9000/poll/${props.poll.id}/result`)
+    function getResults(pollId){
+        fetch(APIURL + pollId + `/result`)
         .then(response => response.json())
         .then(data => setAnswers(data));
-        console.log(props.poll.id)
+    }
+
+    useEffect(() => {
+        getResults(props.poll.id);
     }, [props.poll.id]);
 
     function listAlternativesResults(){
@@ -108,11 +115,27 @@ function ResultsPoll(props){
         <li key={"alternativevote" + index}>
           {alt}: {num}
         </li> );
-  
-        //console.log(ans)
         return ans;
             
     }   
+
+    function resetResults(event){
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                user: localStorage.getItem('userToken'),
+            })
+        };
+
+        fetch(APIURL + props.poll.id + "/reset", requestOptions)
+        .then(response => response.json());
+
+        getResults(props.poll.id);
+
+        console.log(props.poll.id);
+    }
+
 
     return(
         <div>
@@ -120,6 +143,9 @@ function ResultsPoll(props){
             <ul>
                 {listAlternativesResults()}
             </ul>
+
+            <button type="button" onClick={resetResults}>Reset</button>
+            <button type="button" onClick={() => getResults(props.poll.id)}>Update</button>
 
         </div>
         )
