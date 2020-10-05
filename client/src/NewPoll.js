@@ -65,8 +65,8 @@ function NewPoll() {
                 <ul>{ (postData.alternatives || []).map((alternative, index)=>
                     <li key={alternative+index}>{alternative}</li>)}
                 </ul>
-                <Link to={postData.id + "/vote"}>Vote here</Link><br/>
-                <Link to={postData.id + "/results"}>See results here</Link>
+                <Link to={postData._id + "/vote"}>Vote here</Link><br/>
+                <Link to={postData._id + "/results"}>See results here</Link>
             </div>
             )
         }

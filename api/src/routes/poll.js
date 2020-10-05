@@ -1,77 +1,88 @@
 import { Router } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'mongoose';
+import { stringify, v4 as uuidv4 } from 'uuid';
+
 
 const router = Router();
 
-router.get('/', (req, res) => {
-    return res.send(Object.values(req.context.models.polls))
+router.get('/', async (req, res) => {
+    const polls = await req.context.models.Poll.find();
+    return res.send(polls);
 });
 
-router.get('/:pollId', (req, res) => {
-    return res.send(req.context.models.polls[req.params.pollId]);
+router.get('/:pollId', async (req, res) => {
+    const id = req.params.pollId;
+    const poll = await req.context.models.Poll.findById(id);
+    return res.send(poll);
 });
 
 
-router.post('/', (req, res) => {
-    const id = uuidv4();
-    const poll = {
-        id,
+router.post('/', async (req, res) => {
+    const newPoll = await req.context.models.Poll.create(
+        {
         question: req.body.question,
         alternatives: req.body.alternatives,
         votes: {}
-    };
-    req.context.models.polls[id] = poll
-    return res.send(poll);
+    });
+    return res.send(newPoll);
 })
 
 
-router.post('/:pollId/vote', (req, res) => {
-    const id = req.params.pollId
-    var updatedPoll = req.context.models.polls[id];
-    updatedPoll.votes[req.body.user] = req.body.vote;
-    req.context.models.polls[id] = updatedPoll;
-    return res.send(req.context.models.polls[id]);
-});
-
-
-router.post('/:pollId/reset', (req, res) => {
-    const id = req.params.pollId
-    var updatedPoll = req.context.models.polls[id];
-
-    if(!updatedPoll){
-        return res.send({});
-    }
-
-    updatedPoll.votes = {};
-    req.context.models.polls[id] = updatedPoll;
-    return res.send(req.context.models.polls[id]);
-});
-
-
-router.get('/:pollId/result', (req, res) => {
-
+router.post('/:pollId/vote', async (req, res) => {
     const id = req.params.pollId;
-    var poll = req.context.models.polls[id];
-    if(!poll){
+    var poll = await req.context.models.Poll.findById(id);
+    var votes = poll.votes;
+    votes.set(req.body.user, req.body.vote);
+    poll.votes = votes;
+    console.log(req.body.user)
+    console.log(votes);
+    console.log(poll);
+    await poll.save();
+    return res.send(poll);
+});
+
+
+router.post('/:pollId/reset', async (req, res) => {
+    const id = req.params.pollId;
+    req.context.models.Poll.findById(id)
+    .then(poll => {
+        poll.votes = {};
+        poll.save();
+        return res.send(poll);
+    })
+});
+
+
+router.get('/:pollId/result', async (req, res) => {
+    const id = req.params.pollId;
+    if(!id){
         return res.send([]);
     }
-    const n = poll.alternatives.length
-    var answers = new Array(n).fill(0);
-    for (const [user, vote] of Object.entries(poll.votes)) {
-        answers[vote] += 1
-    }
 
-    return res.send(answers);
+    req.context.models.Poll.findById(id)
+    .then(poll => {
+        console.log(poll);
+        const n = poll.alternatives.length
+        var answers = new Array(n).fill(0);
+        for (const [user, vote] of poll.votes.entries()) {
+            answers[vote] += 1
+        }
+    
+        return res.send(answers);
+    }).catch(error => {
+        throw error;
+    });
+    
 });
 
 
-router.delete('/:pollId', (req, res) => {
-    const {
-        [req.params.pollId]: poll,
-        ...otherPolls
-      } = req.context.models.polls;
+router.delete('/:pollId', async (req, res) => {
+    const id = req.params.pollId;
+    const poll = await req.context.models.Poll.findById(id);
 
-    req.context.models.polls = otherPolls;
+    if(poll){
+        await poll.remove();
+    }
     return res.send(poll);
 })
 

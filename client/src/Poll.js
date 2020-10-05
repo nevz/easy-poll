@@ -12,7 +12,7 @@ function Poll(props){
     const [poll, setPoll] = useState({});
 
     useEffect(() => {
-        fetch(APIURL + "/" + pollId)
+        fetch(APIURL + pollId)
         .then(response => response.json())
         .then(data => {
             setPoll(data);
@@ -75,7 +75,7 @@ function VotePoll(props){
                 vote: event.target.alternativevote.value
             })
         };
-        fetch(APIURL + props.poll.id + "/vote", requestOptions)
+        fetch(APIURL + props.poll._id + "/vote", requestOptions)
             .then(response => response.json());
 
     }
@@ -106,8 +106,8 @@ function ResultsPoll(props){
     }
 
     useEffect(() => {
-        getResults(props.poll.id);
-    }, [props.poll.id]);
+        getResults(props.poll._id);
+    }, [props.poll._id]);
 
     function listAlternativesResults(){
         var zipped = (props.poll.alternatives || []).map((alt, i) => [alt, answers[i]]);
@@ -128,12 +128,12 @@ function ResultsPoll(props){
             })
         };
 
-        fetch(APIURL + props.poll.id + "/reset", requestOptions)
+        fetch(APIURL + props.poll._id + "/reset", requestOptions)
         .then(response => response.json());
 
-        getResults(props.poll.id);
+        getResults(props.poll._id);
 
-        console.log(props.poll.id);
+        console.log(props.poll._id);
     }
 
 
@@ -145,7 +145,7 @@ function ResultsPoll(props){
             </ul>
 
             <button type="button" onClick={resetResults}>Reset</button>
-            <button type="button" onClick={() => getResults(props.poll.id)}>Update</button>
+            <button type="button" onClick={() => getResults(props.poll._id)}>Update</button>
 
         </div>
         )
