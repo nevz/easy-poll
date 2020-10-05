@@ -34,9 +34,6 @@ router.post('/:pollId/vote', async (req, res) => {
     var votes = poll.votes;
     votes.set(req.body.user, req.body.vote);
     poll.votes = votes;
-    console.log(req.body.user)
-    console.log(votes);
-    console.log(poll);
     await poll.save();
     return res.send(poll);
 });
@@ -44,12 +41,22 @@ router.post('/:pollId/vote', async (req, res) => {
 
 router.post('/:pollId/reset', async (req, res) => {
     const id = req.params.pollId;
-    req.context.models.Poll.findById(id)
-    .then(poll => {
-        poll.votes = {};
-        poll.save();
-        return res.send(poll);
-    })
+    var poll = await req.context.models.Poll.findById(id);
+    var votes = poll.votes;
+    console.log(votes);
+    votes.clear();
+
+    poll.votes = votes;
+    poll.markModified('votes');
+    console.log(poll.votes);
+    
+    await poll.save(err => {
+        if(err){
+            console.log(err);
+            return;
+        }
+    });
+    return res.send(poll);
 });
 
 
