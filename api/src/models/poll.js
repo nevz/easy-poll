@@ -17,7 +17,5 @@ const pollSchema = new mongoose.Schema(
 );
  
 const Poll = mongoose.model('Poll', pollSchema); 
-console.log(Poll);
-
   
 export default Poll;
