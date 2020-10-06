@@ -69,7 +69,7 @@ router.get('/:pollId/result', async (req, res) => {
         const results = getResults(poll);
         return res.send(results);
     }).catch(error => {
-        console.log("hola");
+        error;
     });
     
 });

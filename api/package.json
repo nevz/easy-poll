@@ -5,15 +5,23 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon --exec babel-node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rm -rf build && mkdir build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-babel": "babel src -d build",
+    "build": "npm run clean && npm run build-babel && cp .env build",
+    "start-prod": "npm run build && node ./build/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/cli": "^7.11.6",
     "@babel/core": "^7.11.6",
     "@babel/node": "^7.10.5",
+    "@babel/plugin-transform-runtime": "^7.11.5",
     "@babel/preset-env": "^7.11.5",
+    "@babel/runtime": "7.0.0-beta.55",
+    "babel-core": "^7.0.0-bridge.0",
     "babel-loader": "^8.1.0",
     "nodemon": "^2.0.4"
   },
@@ -21,8 +29,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "mongodb": "^3.6.2",
     "mongoose": "^5.10.7",
-    "uuid": "^8.3.0"
+    "pm2": "^4.5.0"
   }
 }
