@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
         votes: {}
     });
     return res.send(newPoll);
-})
+});
 
 
 router.post('/:pollId/vote', async (req, res) => {
@@ -43,12 +43,10 @@ router.post('/:pollId/reset', async (req, res) => {
     const id = req.params.pollId;
     var poll = await req.context.models.Poll.findById(id);
     var votes = poll.votes;
-    console.log(votes);
     votes.clear();
 
     poll.votes = votes;
     poll.markModified('votes');
-    console.log(poll.votes);
     
     await poll.save(err => {
         if(err){
@@ -56,7 +54,8 @@ router.post('/:pollId/reset', async (req, res) => {
             return;
         }
     });
-    return res.send(poll);
+    const results = getResults(poll);
+    return res.send(results);
 });
 
 
@@ -65,23 +64,24 @@ router.get('/:pollId/result', async (req, res) => {
     if(!id){
         return res.send([]);
     }
-
     req.context.models.Poll.findById(id)
     .then(poll => {
-        console.log(poll);
-        const n = poll.alternatives.length
-        var answers = new Array(n).fill(0);
-        for (const [user, vote] of poll.votes.entries()) {
-            answers[vote] += 1
-        }
-    
-        return res.send(answers);
+        const results = getResults(poll);
+        return res.send(results);
     }).catch(error => {
-        throw error;
+        console.log("hola");
     });
     
 });
 
+function getResults(poll){
+    const n = poll.alternatives.length
+    var answers = new Array(n).fill(0);
+    for (const [user, vote] of poll.votes.entries()) {
+        answers[vote] += 1
+    }
+    return answers;
+}
 
 router.delete('/:pollId', async (req, res) => {
     const id = req.params.pollId;

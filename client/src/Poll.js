@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState} from 'react'
 import {
     useParams
   } from "react-router-dom";
@@ -117,7 +117,7 @@ function ResultsPoll(props){
         </li> );
         return ans;
             
-    }   
+    }     
 
     function resetResults(event){
         const requestOptions = {
@@ -129,11 +129,8 @@ function ResultsPoll(props){
         };
 
         fetch(APIURL + props.poll._id + "/reset", requestOptions)
-        .then(response => response.json());
-
-        getResults(props.poll._id);
-
-        console.log(props.poll._id);
+        .then(response => response.json())
+        .then(data => setAnswers(data));
     }
 
 
@@ -144,7 +141,7 @@ function ResultsPoll(props){
                 {listAlternativesResults()}
             </ul>
 
-            <button type="button" onClick={resetResults}>Reset</button>
+            <button type="button" onClick={() => resetResults()}>Reset</button>
             <button type="button" onClick={() => getResults(props.poll._id)}>Update</button>
 
         </div>
