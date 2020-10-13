@@ -2,14 +2,17 @@ import { Router } from 'express';
 import { ObjectId } from 'mongoose';
 import { stringify, v4 as uuidv4 } from 'uuid';
 
+//in this file are all the routes allowing to make requests to the poll Api
 
 const router = Router();
 
+//gets all the poll data
 router.get('/', async (req, res) => {
     const polls = await req.context.models.Poll.find();
     return res.send(polls);
 });
 
+//gets the data for the poll with id pollId
 router.get('/:pollId', async (req, res) => {
     const id = req.params.pollId;
     const poll = await req.context.models.Poll.findById(id);
@@ -17,6 +20,7 @@ router.get('/:pollId', async (req, res) => {
 });
 
 
+//adds a new poll
 router.post('/', async (req, res) => {
     const newPoll = await req.context.models.Poll.create(
         {
@@ -28,6 +32,7 @@ router.post('/', async (req, res) => {
 });
 
 
+// adds or modifies a vote on the poll with id pollId
 router.post('/:pollId/vote', async (req, res) => {
     const id = req.params.pollId;
     var poll = await req.context.models.Poll.findById(id);
@@ -39,6 +44,7 @@ router.post('/:pollId/vote', async (req, res) => {
 });
 
 
+//resets the votes of the poll with id pollId
 router.post('/:pollId/reset', async (req, res) => {
     const id = req.params.pollId;
     var poll = await req.context.models.Poll.findById(id);
@@ -59,7 +65,8 @@ router.post('/:pollId/reset', async (req, res) => {
 });
 
 
-router.get('/:pollId/result', async (req, res) => {
+//returns the results of the poll with id pollId, the are in an array withe the following format [optionIndex: numberOfVotes]
+router.get('/:pollId/result', async (req, res) => {    
     const id = req.params.pollId;
     if(!id){
         return res.send([]);
@@ -74,6 +81,7 @@ router.get('/:pollId/result', async (req, res) => {
     
 });
 
+//auxiliary function, gets the results for a poll
 function getResults(poll){
     const n = poll.alternatives.length
     var answers = new Array(n).fill(0);
@@ -83,6 +91,7 @@ function getResults(poll){
     return answers;
 }
 
+//removes the poll with id pollId from the database
 router.delete('/:pollId', async (req, res) => {
     const id = req.params.pollId;
     const poll = await req.context.models.Poll.findById(id);
