@@ -20,8 +20,8 @@ app.use(async (req, res, next) => {
 app.use('/poll', routes.poll);
 
 connectDb().then(async () => { 
-    app.listen(process.env.PORT, ()=> 
-        console.log(`Listening on port ${process.env.PORT}`), 
+    app.listen(process.env.API_PORT, ()=> 
+        console.log(`Listening on port ${process.env.API_PORT}`), 
     );
 });
 
