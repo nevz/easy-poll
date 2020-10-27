@@ -3,17 +3,17 @@ services:
   api:
     build: ./api
     ports:
-      - "9000:9000"
+      - '${API_PORT}:9000'
     depends_on:
       - db
     container_name: easyPoll-api
   client:
     build: ./client
     ports:
-      - "8081:80"
+      - '${CLIENT_PORT}:80'
     container_name: easyPoll-client
   db:
     image: mongo
     ports:
-      - "27018:27017"
+      - "${DB_PORT}:27017"
     container_name: easyPoll-db
