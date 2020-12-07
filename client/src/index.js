@@ -16,5 +16,6 @@ ReactDOM.render(
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
 
-export * from './NewPoll'
-export * from './Poll'
+export * from './NewPoll';
+export * from './Poll';
+export * from './TestJitsi';
