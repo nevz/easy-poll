@@ -20,6 +20,7 @@ function Poll(props){
         });
     }, [pollId]);
 
+    //TODO: buscar forma de hacer esto mas bonito
     function displayPoll(){
         if(props.mode==="vote"){
             return(

@@ -33,10 +33,6 @@ function App() {
                   <Poll mode="results"/>
                 </Route>
 
-                <Route path="/testJitsi">
-                  <TestJitsi />
-                </Route>
-
                 <Route path="/">
                   <NewPoll />
                 </Route>
