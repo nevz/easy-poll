@@ -36,19 +36,27 @@ const io = new Server(server, {
         credentials: true
       }
 });
+
 var counter = 0;
 io.on('connection', socket => {
     counter += 1;
-    console.log('user connected' + counter);
+    console.log('user ' +  socket.id + ' connected ' + counter);
     socket.on('disconnect', () => {
         console.log('user diconnected')
         counter -= 1;
     });
+
     socket.on('joinRoom', (roomName) => {
         socket.join(roomName);
         console.log('joined room' + roomName);
         console.log(socket.rooms);
     });
+
+    socket.on("setUserName", (username) => {
+        socket.username = username;
+        console.log('user name set to ' + username);
+    });    
+
     socket.on('sendToBreakout', (roomName) => {
         socket.to(roomName).emit('notifyBreakout', 'new' + roomName);
     });

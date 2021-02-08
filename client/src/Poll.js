@@ -61,7 +61,6 @@ function DisplayPoll(props){
 
 function VotePoll(props){
 
-
     const [vote, setVote] = useState(false);
     const listAlternatives = (props.poll.alternatives || []).map((alternative, index) => 
     <li key={"alternativevote" + index}>
@@ -72,8 +71,6 @@ function VotePoll(props){
     function onSubmit(event){
         event.preventDefault();
         const vote = event.target.alternativevote.value;
-
-
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
