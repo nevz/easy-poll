@@ -48,17 +48,42 @@ io.on('connection', socket => {
 
     socket.on('joinRoom', (roomName) => {
         socket.join(roomName);
-        console.log('joined room' + roomName);
+        console.log('joined room ' + roomName);
         console.log(socket.rooms);
     });
 
     socket.on("setUserName", (username) => {
         socket.username = username;
+        socket.join(username);
         console.log('user name set to ' + username);
     });    
 
-    socket.on('sendToBreakout', (roomName) => {
-        socket.to(roomName).emit('notifyBreakout', 'new' + roomName);
+    socket.on('sendToBreakout', (roomName, participants, pollId) => {
+
+    /* io.socket.clients().forEach((socket) => {
+            console.log(socket);
+        });
+        console.log(io.socket.clients());
+    */
+
+    //con esto se itera por todos los sockets, con el username se asocia a sus respuestas
+        for (const [id, mySocket] of io.of("/").sockets) {
+            console.log(mySocket.username);
+
+        }
+  
+        models.Poll.findById(pollId).then(
+            (poll) => {
+                console.log(poll.question);
+                console.log('sending to new room ' + roomName );
+                socket.to(roomName).emit('notifyBreakout', 'aaaaaaaaaaaaaaaaaa');
+            }
+        );
+
+        socket.on('returnToMainRoom', (roomName) => {
+            socket.to(roomName).emit('notifyReturnToMainRoom');
+        });
     });
+
 
 });
