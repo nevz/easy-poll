@@ -5,35 +5,33 @@
  * @param {boolean} fillUp wether to fill the groups with one more person if needed. put on false if you want some groups with less people groupSize
  * 
  */
-function createRoomsBySize(groupSize, sockets, fillUp=true) {
-    if(fillUp) return createRoomsByQuantity(Math.floor(participants.length / groupSize), sockets);
-    return createRoomsByQuantity(Math.ceil(participants.length / groupSize), sockets);
+function createRoomsBySize(groupSize, users, fillUp=true) {
+    if(fillUp) return createRoomsByQuantity(Math.floor(users.length / groupSize), users);
+    return createRoomsByQuantity(Math.ceil(users.length / groupSize), users);
 }
 
 /**
  * 
  * @param {*} quantity quantity of groups to be created
- * @param {*} participants array containing all jitsi participants
+ * @param {*} users array containing all user ids
  */
-function createRoomsByQuantity(quantity, participants){
+function createRoomsByQuantity(quantity, users){
     if(quantity===0)quantity=1;
-    let groups = generateGroups(quantity);
-    let groupCounter = 0; //group counter
-    for(let p of participants){
-        sendToBreakout(p, groups[groupCounter]);
+
+    let groupCounter = 0;
+
+    let distribution = Array.from(Array(quantity), () => []);
+    for(let user of users){
+        distribution[groupCounter].push(user);
+        console.log('pushing user ' + user + 'to group ' + groupCounter);
         groupCounter++;
         groupCounter = groupCounter%quantity;
-
     }
+
+    return distribution;
+
 }
 
-function sendToBreakout(participant, breakoutURL){
-    //this.props.dispatch(setPrivateMessageRecipient(participant));
-    //this.props.dispatch(sendMessage(breakoutURL));
-    console.log(participant)
-    console.log("sending " + participant.participantId + " to breakout " + breakoutURL);
-    return;
-};
 
 /**
 * 
