@@ -40,7 +40,7 @@ const roomStore = new InMemoryRoomStore();
 const sessionStore = new InMemorySessionStore();
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: process.env.SOCKET_IO_CORS_ORIGIN,
         methods: ["GET", "POST"],
         allowedHeaders: ["my-custom-header"],
         credentials: true
@@ -132,7 +132,7 @@ io.on('connection', socket => {
     socket.on('joinRoom', (roomName) => {
         socket.join(roomName);
         let room = roomStore.joinRoom(roomName, socket.userID);
-        //join all the parents
+        //join all the parents (useful if user disconnects page while on breakout room)
         while(room.parent){
             socket.join(room.parent);
             room = roomStore.joinRoom(room.parent, socket.userID);
