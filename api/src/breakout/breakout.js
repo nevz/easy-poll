@@ -5,31 +5,49 @@
  * @param {boolean} fillUp wether to fill the groups with one more person if needed. put on false if you want some groups with less people groupSize
  * 
  */
-function createRoomsBySize(groupSize, users, fillUp=true) {
-    if(fillUp) return createRoomsByQuantity(Math.floor(users.length / groupSize), users);
-    return createRoomsByQuantity(Math.ceil(users.length / groupSize), users);
+function createRoomsBySize(groupSize, userIDs, smartBreakoutOption, asnwers) {
+    return createRoomsByQuantity(Math.floor(userIDs.length / groupSize), userIDs, smartBreakoutOption, answers);
+    
+    //(if fillup false)
+    //return createRoomsByQuantity(Math.ceil(users.length / groupSize), users);
 }
 
 /**
  * 
- * @param {*} quantity quantity of groups to be created
- * @param {*} users array containing all user ids
+ * @param {*} numberOfGroups quantity of groups to be created
+ * @param {*} userIDs array containing all user ids
  */
-function createRoomsByQuantity(quantity, users){
-    if(quantity===0)quantity=1;
+function createRoomsByQuantity(numberOfGroups, userIDs, smartBreakoutOption){
 
+    if(smartBreakoutOption==='sameAnswers'){
+        return randomDistribution(numberOfGroups, userIDs);
+    }
+    else if(smartBreakoutOption==='differentAnswers'){
+        return randomDistribution(numberOfGroups, userIDs);
+    }
+    if(smartBreakoutOption==='random'){
+        return randomDistribution(numberOfGroups, userIDs);
+    }
+
+}
+
+function randomDistribution(numberOfGroups, userIDs){
+    if(numberOfGroups===0)numberOfGroups=1;
     let groupCounter = 0;
 
-    let distribution = Array.from(Array(quantity), () => []);
-    for(let user of users){
+    let distribution = Array.from(Array(numberOfGroups), () => []);
+    for(let user of userIDs){
         distribution[groupCounter].push(user);
         console.log('pushing user ' + user + 'to group ' + groupCounter);
         groupCounter++;
-        groupCounter = groupCounter%quantity;
+        groupCounter = groupCounter%numberOfGroups;
     }
 
     return distribution;
+}
 
+function sameAnswerDistribution(numberOfGroups, userIDs, answers){
+    return;
 }
 
 

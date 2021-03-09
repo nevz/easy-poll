@@ -153,31 +153,26 @@ io.on('connection', socket => {
 
 
 
-    socket.on('sendToBreakout', (roomName, size) => {
+    socket.on('sendToBreakout', (roomName, size, breakoutOption, smartBreakoutOption) => {
 
-    /* io.socket.clients().forEach((socket) => {
-            console.log(socket);
-        });
-        console.log(io.socket.clients());
-    */
 
-    //con esto se itera por todos los sockets en roomName
         const pollId = roomStore.getPoll(roomName);
+        let answers = {};
+        models.Poll.findById(pollId).then(
+            (poll) => {
+                answers = poll.votes;
+            }
+        );
+
 
         let users = Array.from(roomStore.getUsers(roomName)).filter( x => { return x!==socket.userID; });;
         console.log(users)        
+        
+ 
 
-        const distribution = createRoomsByQuantity(size, users);
+        const distribution = createRoomsByQuantity(size, users, smartBreakoutOption, answers);
+       
 
-        /*
-        models.Poll.findById(pollId).then(
-            (poll) => {
-                console.log(poll.question);
-                console.log('sending to new room ' + roomName );
-                socket.to(roomName).emit('notifyBreakout', 'aaaaaaaaaaaaaaaaaa');
-            }
-        );
-        */
         let roomCounter = 0;
         const breakoutRoomNames = []
         for(let group of distribution){
@@ -191,6 +186,8 @@ io.on('connection', socket => {
             }
         }
         socket.emit('roomsCreated', breakoutRoomNames);
+
+
 
     });
     
