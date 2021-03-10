@@ -6,7 +6,7 @@ import models, { connectDb } from './models';
 import { Server, Socket } from "socket.io";
 import { InMemoryRoomStore } from "./breakout/roomStore";
 import {InMemorySessionStore} from "./sessionStore";
-import {createRoomsByQuantity, createRoomsBySize} from './breakout/breakout';
+import {createRooms, sendToBreakout} from './breakout/breakout';
 
 const app = express();
 
@@ -154,41 +154,28 @@ io.on('connection', socket => {
 
 
     socket.on('sendToBreakout', (roomName, size, breakoutOption, smartBreakoutOption) => {
-
+        
+        const users = Array.from(roomStore.getUsers(roomName)).filter( x => { return x!==socket.userID; });;
+        console.log(users)   
 
         const pollId = roomStore.getPoll(roomName);
-        let answers = {};
-        models.Poll.findById(pollId).then(
-            (poll) => {
-                answers = poll.votes;
-            }
-        );
 
-
-        let users = Array.from(roomStore.getUsers(roomName)).filter( x => { return x!==socket.userID; });;
-        console.log(users)        
-        
- 
-
-        const distribution = createRoomsByQuantity(size, users, smartBreakoutOption, answers);
-       
-
-        let roomCounter = 0;
-        const breakoutRoomNames = []
-        for(let group of distribution){
-            roomCounter++;
-            const breakoutRoomName = roomName + 'easyFlipRoom' + roomCounter;
-            breakoutRoomNames.push(breakoutRoomName);
-            const newRoom = roomStore.newRoom(breakoutRoomName, undefined, roomName);
-            for(let userID of group){
-                socket.to(userID).emit('notifyBreakout', {breakoutRoomName: breakoutRoomName, originalRoomName: roomName});
-                console.log('sending user ' + userID + ' to breakout room ' + breakoutRoomName);
-            }
+        if(pollId){
+            let answers = {};
+            models.Poll.findById(pollId).then(
+                (poll) => {
+                    answers = poll.votes;
+                    console.log('the answers are ', answers);
+                    const distribution = createRooms(size, users, breakoutOption, smartBreakoutOption, answers);
+                    sendToBreakout(socket, roomName, distribution, roomStore); 
+                }
+            );
+    
         }
-        socket.emit('roomsCreated', breakoutRoomNames);
-
-
-
+        else{
+            const distribution = createRooms(size, users, breakoutOption, 'random', {});  
+            sendToBreakout(socket, roomName, distribution, roomStore); 
+        }
     });
     
     socket.on('callToMainRoom', (mainRoomName) => {
@@ -199,7 +186,7 @@ io.on('connection', socket => {
     socket.on('setPollId', (roomName, pollId) => {
         console.log('sending poll ' + pollId + " to users on room " + roomName );
         roomStore.setPoll(roomName, pollId);
-        socket.to(roomName).emit("pollChanged", roomName, pollId);
+        io.to(roomName).emit("pollChanged", roomName, pollId);
     });
 
     socket.on('leaveRoom', (roomName) => {
@@ -210,8 +197,5 @@ io.on('connection', socket => {
             
         }
     });
-
-
-
 
 });
