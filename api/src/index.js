@@ -5,13 +5,13 @@ import routes from './routes';
 import models, { connectDb } from './models';
 import { Server, Socket } from "socket.io";
 import { InMemoryRoomStore } from "./breakout/roomStore";
-import {InMemorySessionStore} from "./sessionStore";
-import {createRooms, sendToBreakout} from './breakout/breakout';
+import { InMemorySessionStore } from "./sessionStore";
+import { createRooms, sendToBreakout } from './breakout/breakout';
 
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(async (req, res, next) => {
     req.context = {
@@ -25,13 +25,13 @@ app.use('/poll', routes.poll);
 var server;
 
 connectDb().then(async () => {
-   
+
 });
 
 
 
-server = app.listen(process.env.API_PORT, ()=> 
-console.log(`Listening on port ${process.env.API_PORT}`), 
+server = app.listen(process.env.API_PORT, () =>
+    console.log(`Listening on port ${process.env.API_PORT}`),
 );
 
 
@@ -44,7 +44,7 @@ const io = new Server(server, {
         methods: ["GET", "POST"],
         allowedHeaders: ["my-custom-header"],
         credentials: true
-      }
+    }
 });
 
 
@@ -62,7 +62,7 @@ io.use((socket, next) => {
             socket.sessionID = sessionID;
             socket.userID = session.userID;
         }
-        else{
+        else {
             socket.sessionID = sessionID;
             socket.userID = randomId();
         }
@@ -75,21 +75,20 @@ io.use((socket, next) => {
     socket.sessionID = randomId();
     socket.userID = randomId();
     next();
-  });
-  
+});
+
 
 io.on('connection', socket => {
 
     //Remove this later, it's for debugging
     socket.onAny((event, ...args) => {
         console.log(event, args);
-      });
-      
-    console.log('user ' +  socket.id + ' connected ');
+    });
+
+    console.log('user ' + socket.id + ' connected ');
 
     sessionStore.saveSession(socket.sessionID, {
         userID: socket.userID,
-        username: socket.username,
         connected: true,
     });
     roomStore.newUser(socket.userID);
@@ -98,7 +97,7 @@ io.on('connection', socket => {
         sessionID: socket.sessionID,
         userID: socket.userID,
     });
-    
+
     socket.join(socket.userID);
 
 
@@ -109,31 +108,30 @@ io.on('connection', socket => {
         if (isDisconnected) {
             // notify other users
             console.log("user disconnected", socket.userID);
-            
+
             // leave the rooms
             const rooms = roomStore.getRoomsForUser(socket.userID);
-            for(let roomName of rooms){
+            for (let roomName of rooms) {
                 roomStore.leaveRoom(roomName, socket.userID);
             }
 
             // update the connection status of the session
             sessionStore.saveSession(socket.sessionID, {
-            userID: socket.userID,
-            username: socket.username,
-            connected: false,
+                userID: socket.userID,
+                connected: false,
             });
-       
-          
-        }
-      });
 
-    
+
+        }
+    });
+
+
 
     socket.on('joinRoom', (roomName) => {
         socket.join(roomName);
         let room = roomStore.joinRoom(roomName, socket.userID);
         //join all the parents (useful if user disconnects page while on breakout room)
-        while(room.parent){
+        while (room.parent) {
             socket.join(room.parent);
             room = roomStore.joinRoom(room.parent, socket.userID);
         }
@@ -142,9 +140,13 @@ io.on('connection', socket => {
 
     });
 
+    socket.on('jitsiUser', (jitsiUserName) => {
+        socket.jitsiUserName = jitsiUserName;
+    });
+
     socket.on('getRoomData', (roomName) => {
         let room = roomStore.getRoom(roomName);
-        if(!room){
+        if (!room) {
             room = roomStore.newRoom(roomName, socket.userID);
         }
         console.log(room);
@@ -154,37 +156,37 @@ io.on('connection', socket => {
 
 
     socket.on('sendToBreakout', (roomName, size, breakoutOption, smartBreakoutOption) => {
-        
-        const users = Array.from(roomStore.getUsers(roomName)).filter( x => { return x!==socket.userID; });;
-        console.log(users)   
+
+        const users = Array.from(roomStore.getUsers(roomName)).filter(x => { return x !== socket.userID; });;
+        console.log(users)
 
         const pollId = roomStore.getPoll(roomName);
 
-        if(pollId){
+        if (pollId) {
             let answers = {};
             models.Poll.findById(pollId).then(
                 (poll) => {
                     answers = poll.votes;
                     console.log('the answers are ', answers);
                     const distribution = createRooms(size, users, breakoutOption, smartBreakoutOption, answers);
-                    sendToBreakout(socket, roomName, distribution, roomStore); 
+                    sendToBreakout(socket, roomName, distribution, roomStore);
                 }
             );
-    
+
         }
-        else{
-            const distribution = createRooms(size, users, breakoutOption, 'random', {});  
-            sendToBreakout(socket, roomName, distribution, roomStore); 
+        else {
+            const distribution = createRooms(size, users, breakoutOption, 'random', {});
+            sendToBreakout(socket, roomName, distribution, roomStore);
         }
     });
-    
+
     socket.on('callToMainRoom', (mainRoomName) => {
         console.log('calling all people back to room ', mainRoomName);
         socket.to(mainRoomName).emit('returnToMainRoom', mainRoomName);
     });
 
     socket.on('setPollId', (roomName, pollId) => {
-        console.log('sending poll ' + pollId + " to users on room " + roomName );
+        console.log('sending poll ' + pollId + " to users on room " + roomName);
         roomStore.setPoll(roomName, pollId);
         io.to(roomName).emit("pollChanged", roomName, pollId);
     });
@@ -194,11 +196,10 @@ io.on('connection', socket => {
     });
 
     socket.on('leaveRoom', (roomName) => {
-        if(roomName){
-            if(roomStore.getRoom(roomName)){
-                roomStore.leaveRoom(roomName, socket.userID)
+        if (roomName) {
+            if (roomStore.getRoom(roomName)) {
+                roomStore.leaveRoom(roomName, socket.userID);
             }
-            
         }
     });
 
