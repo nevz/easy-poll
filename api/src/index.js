@@ -189,6 +189,10 @@ io.on('connection', socket => {
         io.to(roomName).emit("pollChanged", roomName, pollId);
     });
 
+    socket.on('showResults', (roomName) => {
+        socket.to(roomName).emit('showResults', roomName);
+    });
+
     socket.on('leaveRoom', (roomName) => {
         if(roomName){
             if(roomStore.getRoom(roomName)){
