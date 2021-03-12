@@ -1,3 +1,7 @@
+import fs from 'fs';
+import https from 'https';
+import path from 'path';
+
 import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
@@ -9,6 +13,7 @@ import { InMemorySessionStore } from "./sessionStore";
 import { createRooms, sendToBreakout } from './breakout/breakout';
 
 const app = express();
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -22,15 +27,21 @@ app.use(async (req, res, next) => {
 
 app.use('/poll', routes.poll);
 
-var server;
+
+
+var options = {
+    key: fs.readFileSync('./security/keys.pem'),
+    cert: fs.readFileSync('./security/keys.crt')
+};
+
+var server = https.createServer(options, app);
 
 connectDb().then(async () => {
 
 });
 
 
-
-server = app.listen(process.env.API_PORT, () =>
+server.listen(process.env.API_PORT, () =>
     console.log(`Listening on port ${process.env.API_PORT}`),
 );
 
