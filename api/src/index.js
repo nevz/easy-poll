@@ -166,16 +166,14 @@ io.on('connection', socket => {
             let answers = {};
             models.Poll.findById(pollId).then(
                 (poll) => {
-                    answers = poll.votes;
-                    console.log('the answers are ', answers);
-                    const distribution = createRooms(size, users, breakoutOption, smartBreakoutOption, answers);
+                    const distribution = createRooms(size, users, breakoutOption, smartBreakoutOption, poll);
                     sendToBreakout(socket, roomName, distribution, roomStore);
                 }
             );
 
         }
         else {
-            const distribution = createRooms(size, users, breakoutOption, 'random', {});
+            const distribution = createRooms(size, users, breakoutOption, 'random', poll);
             sendToBreakout(socket, roomName, distribution, roomStore);
         }
     });
