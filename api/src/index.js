@@ -43,7 +43,8 @@ const io = new Server(server, {
         origin: process.env.SOCKET_IO_CORS_ORIGIN,
         methods: ["GET", "POST"],
         credentials: true
-    }
+    },
+    path:"/socket/"
 });
 
 
