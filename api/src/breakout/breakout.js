@@ -29,14 +29,14 @@ function createRoomsByQuantity(numberOfGroups, userIDs, smartBreakoutOption, pol
         return sameAnswerDistribution(numberOfGroups, userIDs, poll);
     }
     else if (smartBreakoutOption === 'differentAnswers') {
-        return differentAnswersDistribution(numberOfGroups, userIDs);
+        return differentAnswersDistribution(numberOfGroups, userIDs, poll);
     }
     else if (smartBreakoutOption === 'random') {
-        return randomDistribution(numberOfGroups, userIDs);
+        return randomDistribution(numberOfGroups, userIDs, poll);
     }
 }
 
-function randomDistribution(numberOfGroups, userIDs) {
+function randomDistribution(numberOfGroups, userIDs, poll) {
     if (numberOfGroups === 0) numberOfGroups = 1;
     let groupCounter = 0;
     shuffle(userIDs);
@@ -48,13 +48,16 @@ function randomDistribution(numberOfGroups, userIDs) {
         groupCounter = groupCounter % numberOfGroups;
     }
 
-    showDistribution(distribution);
+    showDistribution(distribution, poll);
     return distribution;
 }
 
 
 function sameAnswerDistribution(numberOfGroups, userIDs, poll) {
-    const groupSize = Math.floor(userIDs.length / numberOfGroups);
+    if (numberOfGroups === 0) numberOfGroups = 1;
+
+    const groupSize = Math.max(Math.floor(userIDs.length / numberOfGroups), 1);
+    
     const answers = poll.votes;
     let distribution = Array.from(Array(numberOfGroups), () => []);
     let buckets = separateByAnswers(userIDs, poll);
@@ -85,13 +88,15 @@ function sameAnswerDistribution(numberOfGroups, userIDs, poll) {
             }
         }
     }
-    showDistribution(distribution);
+    showDistribution(distribution, poll);
     return distribution;
 }
 
 function differentAnswersDistribution(numberOfGroups, userIDs, poll) {
+    if (numberOfGroups === 0) numberOfGroups = 1;
+
     let distribution = Array.from(Array(numberOfGroups), () => []);
-    const groupSize = Math.floor(userIDs.length / numberOfGroups);
+    const groupSize = Math.max(Math.floor(userIDs.length / numberOfGroups), 1);
 
     let buckets = separateByAnswers(userIDs, poll);
     let emptyCounter = buckets.length;
@@ -99,7 +104,7 @@ function differentAnswersDistribution(numberOfGroups, userIDs, poll) {
     for (let bucket of buckets) {
         if (bucket.length == 0) emptyCounter--;
     }
-    sizeCounter = 0;
+    let sizeCounter = 0;
     while (emptyCounter > 0) {
         for (let bucket of buckets) {
             if (bucket.length > 0) {
@@ -116,14 +121,14 @@ function differentAnswersDistribution(numberOfGroups, userIDs, poll) {
             }
         }
     }
-    showDistribution(distribution);
+    showDistribution(distribution, poll);
 
     return distribution;
 
 }
 
 function separateByAnswers(userIDs, poll) {
-    answers = poll.votes;
+    const answers = poll.votes;
     const numberOfBuckets = poll.alternatives.length + 1;
     let buckets = Array.from(Array(numberOfBuckets), () => []);
     //we separate participants in buckets, according to their answers
@@ -135,6 +140,7 @@ function separateByAnswers(userIDs, poll) {
             buckets[numberOfBuckets - 1].push(userID);
         }
     }
+    console.log("the buckets are :", buckets);
     return buckets;
 }
 

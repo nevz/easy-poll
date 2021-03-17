@@ -173,7 +173,12 @@ io.on('connection', socket => {
 
         }
         else {
-            const distribution = createRooms(size, users, breakoutOption, 'random', poll);
+            //this is a quick fix to make it not throw an error when there's no poll in the room
+            let emptyPoll = {
+                votes: new Map(),
+                alternatives: []
+            }
+            const distribution = createRooms(size, users, breakoutOption, 'random', emptyPoll);
             sendToBreakout(socket, roomName, distribution, roomStore);
         }
     });
