@@ -188,6 +188,12 @@ io.on('connection', socket => {
         socket.to(mainRoomName).emit('returnToMainRoom', mainRoomName);
     });
 
+    socket.on('forceToMainRoom', (mainRoomName) => {
+        console.log('forcing all people back to room ', mainRoomName);
+        socket.to(mainRoomName).emit('forceToMainRoom', mainRoomName);
+    });
+
+
     socket.on('setPollId', (roomName, pollId) => {
         console.log('sending poll ' + pollId + " to users on room " + roomName);
         roomStore.setPoll(roomName, pollId);
