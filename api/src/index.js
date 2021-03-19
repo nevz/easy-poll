@@ -125,8 +125,6 @@ io.on('connection', socket => {
         }
     });
 
-
-
     socket.on('joinRoom', (roomName) => {
         socket.join(roomName);
         let room = roomStore.joinRoom(roomName, socket.userID);
@@ -149,7 +147,6 @@ io.on('connection', socket => {
         if (!room) {
             room = roomStore.newRoom(roomName, socket.userID);
         }
-        console.log(room);
         socket.emit('roomData', room);
     });
 
@@ -158,8 +155,6 @@ io.on('connection', socket => {
     socket.on('sendToBreakout', (roomName, size, breakoutOption, smartBreakoutOption) => {
 
         const users = Array.from(roomStore.getUsers(roomName)).filter(x => { return x !== socket.userID; });;
-        console.log(users)
-
         const pollId = roomStore.getPoll(roomName);
 
         if (pollId) {
