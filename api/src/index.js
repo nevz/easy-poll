@@ -85,7 +85,7 @@ io.on('connection', socket => {
         console.log(event, args);
     });
 
-    console.log('user ' + socket.id + ' connected ');
+    console.log('socket ' + socket.id + ' connected ');
 
     sessionStore.saveSession(socket.sessionID, {
         userID: socket.userID,
@@ -101,10 +101,11 @@ io.on('connection', socket => {
     socket.join(socket.userID);
 
 
-    socket.on("disconnect", async () => {
+    socket.on("disconnect", () => {
 
-        const matchingSockets = await io.in(socket.userID).allSockets();
-        const isDisconnected = matchingSockets.size === 0;
+        const matchingSockets = io.of('/').adapter.rooms.get(socket.userID);
+        console.log(matchingSockets);
+        const isDisconnected = matchingSockets === undefined;
         if (isDisconnected) {
             // notify other users
             console.log("user disconnected", socket.userID);

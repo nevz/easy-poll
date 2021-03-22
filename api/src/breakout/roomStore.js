@@ -66,6 +66,7 @@ class Room{
     }
 
     leaveRoom(roomName, userId) {
+        console.log(userId, " has left the room ", roomName);
         const roomToLeave = this.rooms.get(roomName);
         roomToLeave.connectedUsers.delete(userId);
         this.users.get(userId).delete(roomName);
