@@ -97,30 +97,6 @@ class Room{
     getUsers(roomName){
         return this.rooms.get(roomName).connectedUsers;
     }
-
-  
-    /*
-    findMessagesForUser(userID) {
-      return this.messages.filter(
-        ({ from, to }) => from === userID || to === userID
-      );
-    }
-    */
-
-    
   }
   
 export { InMemoryRoomStore }; 
-
-
-/*
-//FOR TESTING 
-roomStore.newRoom("sala2", "yo");
-roomStore.newRoom("sala", "yo", "sala2");
-console.log("hola");
-roomStore.joinRoom('sala', "yo");
-roomStore.joinRoom('sala', "otro yo");
-roomStore.joinRoom("sala2", "el de la 2")
-roomStore.leaveRoom("sala", "yo")
-console.log(roomStore);
-*/

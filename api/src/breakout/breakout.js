@@ -8,8 +8,7 @@ function createRooms(size, users, breakoutOption, smartBreakoutOption, poll) {
 /**
  * Creates breakout rooms with the selected size, and sends people to them.
  * @param {int} groupSize the size of the groups to be created
- * @param {[participant]} participants the array containing all the jitsi participants
- * @param {boolean} fillUp wether to fill the groups with one more person if needed. put on false if you want some groups with less people groupSize
+ * @param {Set<String>} userIDs the set containing all the jitsi participants
  * 
  */
 function createRoomsBySize(groupSize, userIDs, smartBreakoutOption, poll) {
@@ -26,10 +25,10 @@ function createRoomsBySize(groupSize, userIDs, smartBreakoutOption, poll) {
  */
 function createRoomsByQuantity(numberOfGroups, userIDs, smartBreakoutOption, poll) {
     if (smartBreakoutOption === 'sameAnswers') {
-        return sameAnswerDistribution(numberOfGroups, userIDs, poll);
+        return sameAnswerDistribution2(numberOfGroups, userIDs, poll);
     }
     else if (smartBreakoutOption === 'differentAnswers') {
-        return differentAnswersDistribution(numberOfGroups, userIDs, poll);
+        return differentAnswersDistribution2(numberOfGroups, userIDs, poll);
     }
     else if (smartBreakoutOption === 'random') {
         return randomDistribution(numberOfGroups, userIDs, poll);
@@ -57,7 +56,7 @@ function sameAnswerDistribution(numberOfGroups, userIDs, poll) {
     if (numberOfGroups === 0) numberOfGroups = 1;
 
     const groupSize = Math.max(Math.floor(userIDs.length / numberOfGroups), 1);
-    
+
     const answers = poll.votes;
     let distribution = Array.from(Array(numberOfGroups), () => []);
     let buckets = separateByAnswers(userIDs, poll);
@@ -91,6 +90,35 @@ function sameAnswerDistribution(numberOfGroups, userIDs, poll) {
     showDistribution(distribution, poll);
     return distribution;
 }
+
+function sameAnswerDistribution2(numberOfGroups, userIDs, poll) {
+    if (numberOfGroups === 0) numberOfGroups = 1;
+    const groupSize = Math.ceil(userIDs.length / numberOfGroups);
+    const answers = poll.votes;
+    let distribution = [];
+    let buckets = separateByAnswers(userIDs, poll);
+    let groupCounter = 0;
+    let sizeCounter = 0;
+    let previousNumberOfGroups = 0;
+    for (let bucket of buckets) {
+        let groupCounter = previousNumberOfGroups;
+        const numberOfGroupsForThisBucket = Math.ceil(bucket.length / groupSize);
+        for (let i = previousNumberOfGroups; i < (previousNumberOfGroups + numberOfGroupsForThisBucket); i++) {
+            distribution[i] = [];
+        }
+        while (bucket.length > 0) {
+            console.log(numberOfGroupsForThisBucket, groupCounter);
+            distribution[groupCounter].push(bucket.pop());
+            groupCounter++;
+            groupCounter = ((groupCounter - previousNumberOfGroups) % numberOfGroupsForThisBucket) + previousNumberOfGroups;
+        }
+        previousNumberOfGroups += numberOfGroupsForThisBucket;
+
+    }
+    showDistribution(distribution, poll);
+    return distribution;
+}
+
 
 function differentAnswersDistribution(numberOfGroups, userIDs, poll) {
     if (numberOfGroups === 0) numberOfGroups = 1;
@@ -127,6 +155,27 @@ function differentAnswersDistribution(numberOfGroups, userIDs, poll) {
 
 }
 
+function differentAnswersDistribution2(numberOfGroups, userIDs, poll) {
+    if (numberOfGroups === 0) numberOfGroups = 1;
+
+    let distribution = Array.from(Array(numberOfGroups), () => []);
+    let buckets = separateByAnswers(userIDs, poll);
+    let groupCounter = 0;
+
+    for (let bucket of buckets) {
+        while (bucket.length > 0) {
+            distribution[groupCounter].push(bucket.pop())
+            groupCounter++;
+            groupCounter = groupCounter%numberOfGroups;
+        }
+    }
+
+    showDistribution(distribution, poll);
+
+    return distribution;
+
+}
+
 function separateByAnswers(userIDs, poll) {
     const answers = poll.votes;
     const numberOfBuckets = poll.alternatives.length + 1;
@@ -148,7 +197,7 @@ function separateByAnswers(userIDs, poll) {
 
 function sendToBreakout(socket, roomName, distribution, roomStore) {
     let roomCounter = 0;
-    const breakoutRoomNames = []
+    const breakoutRoomNames = [];
     for (let group of distribution) {
         roomCounter++;
         const breakoutRoomName = roomName + 'easyFlipRoom' + roomCounter;
@@ -196,9 +245,8 @@ function showDistribution(distribution, poll) {
 
 export { createRooms, sendToBreakout };
 
+//This is for testing
 /*
-This is for testing
-
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
@@ -215,7 +263,5 @@ for (let i = 0; i < 41; i++) {
 
 console.log(poll);
 console.log("buckets:", separateByAnswers(userIDs, poll))
-const dist = differentAnswersDistribution(5, userIDs, poll);
-
-showDistribution(dist, poll);
+const dist = createRoomsBySize(5, userIDs, 'differentAnswers', poll); 
 */
