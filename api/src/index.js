@@ -44,7 +44,7 @@ const io = new Server(server, {
         methods: ["GET", "POST"],
         credentials: true
     },
-    path:process.env.SOCKET_IO_PATH
+    path: process.env.SOCKET_IO_PATH
 });
 
 
@@ -104,7 +104,6 @@ io.on('connection', socket => {
     socket.on("disconnect", () => {
 
         const matchingSockets = io.of('/').adapter.rooms.get(socket.userID);
-        console.log(matchingSockets);
         const isDisconnected = matchingSockets === undefined;
         if (isDisconnected) {
             // notify other users
@@ -121,8 +120,6 @@ io.on('connection', socket => {
                 userID: socket.userID,
                 connected: false,
             });
-
-
         }
     });
 
