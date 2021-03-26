@@ -1,10 +1,10 @@
 class Room{
-    constructor(roomName, owner, parentRoomName){
+    constructor(roomName, owner, parentRoomName, pollId=undefined){
         this.parent = parentRoomName
         this.roomName = roomName;
         this.owner = owner;
         this.connectedUsers = new Set();
-        this.pollId = undefined;
+        this.pollId = pollId;
     }
 }
 
@@ -38,8 +38,8 @@ class Room{
      * @param {str} ownerId the id of the owner of the room
      * @param {str} parentRoomName the name of the room that generated this one
      */
-    newRoom(roomName, ownerId, parentRoomName) {
-        let room = new Room(roomName, ownerId, parentRoomName);
+    newRoom(roomName, ownerId, parentRoomName, pollId=undefined) {
+        let room = new Room(roomName, ownerId, parentRoomName, pollId);
         this.rooms.set(roomName, room);
         if(ownerId){
             room.connectedUsers.add(ownerId);

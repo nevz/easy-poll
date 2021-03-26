@@ -25,10 +25,10 @@ function createRoomsBySize(groupSize, userIDs, smartBreakoutOption, poll) {
  */
 function createRoomsByQuantity(numberOfGroups, userIDs, smartBreakoutOption, poll) {
     if (smartBreakoutOption === 'sameAnswers') {
-        return sameAnswerDistribution2(numberOfGroups, userIDs, poll);
+        return sameAnswerDistribution(numberOfGroups, userIDs, poll);
     }
     else if (smartBreakoutOption === 'differentAnswers') {
-        return differentAnswersDistribution2(numberOfGroups, userIDs, poll);
+        return differentAnswersDistribution(numberOfGroups, userIDs, poll);
     }
     else if (smartBreakoutOption === 'random') {
         return randomDistribution(numberOfGroups, userIDs, poll);
@@ -54,60 +54,19 @@ function randomDistribution(numberOfGroups, userIDs, poll) {
 
 function sameAnswerDistribution(numberOfGroups, userIDs, poll) {
     if (numberOfGroups === 0) numberOfGroups = 1;
-
-    const groupSize = Math.max(Math.floor(userIDs.length / numberOfGroups), 1);
-
-    const answers = poll.votes;
-    let distribution = Array.from(Array(numberOfGroups), () => []);
-    let buckets = separateByAnswers(userIDs, poll);
-    let groupCounter = 0;
-    let sizeCounter = 0;
-    for (let bucket of buckets) {
-        while (bucket.length >= groupSize) {
-            for (let i = 0; i < groupSize; i++) {
-                distribution[groupCounter].push(bucket.pop());
-                sizeCounter++;
-                if (sizeCounter == groupSize) {
-                    groupCounter++;
-                    groupCounter = groupCounter % numberOfGroups;
-                    sizeCounter = 0;
-                }
-            }
-
-        }
-    }
-    for (let bucket of buckets) {
-        while (bucket.length > 0) {
-            distribution[groupCounter].push(bucket.pop());
-            sizeCounter++;
-            if (sizeCounter == groupSize) {
-                groupCounter++;
-                groupCounter = groupCounter % numberOfGroups;
-                sizeCounter = 0;
-            }
-        }
-    }
-    showDistribution(distribution, poll);
-    return distribution;
-}
-
-function sameAnswerDistribution2(numberOfGroups, userIDs, poll) {
-    if (numberOfGroups === 0) numberOfGroups = 1;
-    const groupSize = Math.ceil(userIDs.length / numberOfGroups);
+    const groupSize = Math.floor(userIDs.length / numberOfGroups);
     const answers = poll.votes;
     let distribution = [];
     let buckets = separateByAnswers(userIDs, poll);
     let groupCounter = 0;
-    let sizeCounter = 0;
     let previousNumberOfGroups = 0;
     for (let bucket of buckets) {
         let groupCounter = previousNumberOfGroups;
-        const numberOfGroupsForThisBucket = Math.ceil(bucket.length / groupSize);
+        const numberOfGroupsForThisBucket = Math.max(Math.floor(bucket.length / groupSize),1);
         for (let i = previousNumberOfGroups; i < (previousNumberOfGroups + numberOfGroupsForThisBucket); i++) {
             distribution[i] = [];
         }
         while (bucket.length > 0) {
-            console.log(numberOfGroupsForThisBucket, groupCounter);
             distribution[groupCounter].push(bucket.pop());
             groupCounter++;
             groupCounter = ((groupCounter - previousNumberOfGroups) % numberOfGroupsForThisBucket) + previousNumberOfGroups;
@@ -121,41 +80,6 @@ function sameAnswerDistribution2(numberOfGroups, userIDs, poll) {
 
 
 function differentAnswersDistribution(numberOfGroups, userIDs, poll) {
-    if (numberOfGroups === 0) numberOfGroups = 1;
-
-    let distribution = Array.from(Array(numberOfGroups), () => []);
-    const groupSize = Math.max(Math.floor(userIDs.length / numberOfGroups), 1);
-
-    let buckets = separateByAnswers(userIDs, poll);
-    let emptyCounter = buckets.length;
-    let groupCounter = 0;
-    for (let bucket of buckets) {
-        if (bucket.length == 0) emptyCounter--;
-    }
-    let sizeCounter = 0;
-    while (emptyCounter > 0) {
-        for (let bucket of buckets) {
-            if (bucket.length > 0) {
-                distribution[groupCounter].push(bucket.pop())
-                sizeCounter++;
-                if (sizeCounter == groupSize) {
-                    sizeCounter = 0;
-                    groupCounter++;
-                    groupCounter = groupCounter % numberOfGroups;
-                }
-                if (bucket.length == 0) {
-                    emptyCounter--;
-                }
-            }
-        }
-    }
-    showDistribution(distribution, poll);
-
-    return distribution;
-
-}
-
-function differentAnswersDistribution2(numberOfGroups, userIDs, poll) {
     if (numberOfGroups === 0) numberOfGroups = 1;
 
     let distribution = Array.from(Array(numberOfGroups), () => []);
@@ -182,7 +106,7 @@ function separateByAnswers(userIDs, poll) {
     let buckets = Array.from(Array(numberOfBuckets), () => []);
     //we separate participants in buckets, according to their answers
     for (const userID of userIDs) {
-        if (answers.get(userID)) {
+        if (answers.get(userID)!==undefined) {
             buckets[answers.get(userID)].push(userID);
         }
         else {
@@ -195,14 +119,14 @@ function separateByAnswers(userIDs, poll) {
 
 
 
-function sendToBreakout(socket, roomName, distribution, roomStore) {
+function sendToBreakout(socket, roomName, distribution, roomStore, pollId) {
     let roomCounter = 0;
     const breakoutRoomNames = [];
     for (let group of distribution) {
         roomCounter++;
         const breakoutRoomName = roomName + 'easyFlipRoom' + roomCounter;
         breakoutRoomNames.push(breakoutRoomName);
-        const newRoom = roomStore.newRoom(breakoutRoomName, undefined, roomName);
+        const newRoom = roomStore.newRoom(breakoutRoomName, undefined, roomName, pollId);
         for (let userID of group) {
             socket.to(userID).emit('notifyBreakout', { breakoutRoomName: breakoutRoomName, originalRoomName: roomName });
             console.log('sending user ' + userID + ' to breakout room ' + breakoutRoomName);
@@ -248,7 +172,13 @@ export { createRooms, sendToBreakout };
 //This is for testing
 /*
 function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
+    const randomNumber = Math.floor(Math.random() * (1+Math.floor(max)))
+    if(randomNumber===Math.floor(max)){
+        return undefined;
+    }
+    else{
+        return randomNumber;
+    }
 }
 let userIDs = [];
 shuffle(userIDs);
@@ -262,6 +192,5 @@ for (let i = 0; i < 41; i++) {
 }
 
 console.log(poll);
-console.log("buckets:", separateByAnswers(userIDs, poll))
-const dist = createRoomsBySize(5, userIDs, 'differentAnswers', poll); 
+const dist = createRoomsByQuantity(6, userIDs, 'sameAnswers', poll); 
 */
