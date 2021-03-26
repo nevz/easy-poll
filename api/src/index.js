@@ -160,7 +160,7 @@ io.on('connection', socket => {
             models.Poll.findById(pollId).then(
                 (poll) => {
                     const distribution = createRooms(size, users, breakoutOption, smartBreakoutOption, poll);
-                    sendToBreakout(socket, roomName, distribution, roomStore);
+                    sendToBreakout(socket, roomName, distribution, roomStore, pollId);
                 }
             );
 
@@ -172,7 +172,7 @@ io.on('connection', socket => {
                 alternatives: []
             }
             const distribution = createRooms(size, users, breakoutOption, 'random', emptyPoll);
-            sendToBreakout(socket, roomName, distribution, roomStore);
+            sendToBreakout(socket, roomName, distribution, roomStore, pollId);
         }
     });
 
