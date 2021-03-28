@@ -81,6 +81,24 @@ router.get('/:pollId/result', async (req, res) => {
     
 });
 
+// gets all answers for a poll in a list
+// 
+router.get('/:pollId/answers', async (req, res) => {    
+    const id = req.params.pollId;
+    if(!id){
+        return res.send([]);
+    }
+    req.context.models.Poll.findById(id)
+    .then(poll => {
+        const answers = poll.votes;
+        return res.send(answers);
+    }).catch(error => {
+        error;
+    });
+    
+});
+
+
 //auxiliary function, gets the results for a poll
 function getResults(poll){
     const n = poll.alternatives.length
