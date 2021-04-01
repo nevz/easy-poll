@@ -7,7 +7,7 @@ import {
 
 
 import './App.css';
-import { NewPoll, Poll, TestJitsi } from './';
+import { NewPoll, Poll } from './';
 
 
 

@@ -109,7 +109,9 @@ function getResults(poll){
     return answers;
 }
 
-//removes the poll with id pollId from the database
+/*
+//removes the poll with id pollId from the database.
+//should stay disabled until some verification can be done so its not unsafe.
 router.delete('/:pollId', async (req, res) => {
     const id = req.params.pollId;
     const poll = await req.context.models.Poll.findById(id);
@@ -119,5 +121,6 @@ router.delete('/:pollId', async (req, res) => {
     }
     return res.send(poll);
 })
+*/
 
 export default router;
