@@ -131,8 +131,7 @@ io.on('connection', socket => {
             socket.join(room.parent);
             room = roomStore.joinRoom(room.parent, socket.userID);
         }
-
-        console.log(roomStore.rooms.get(roomName).connectedUsers);
+        console.log(roomStore.getRoom(roomName).connectedUsers);
 
     });
 
@@ -203,6 +202,18 @@ io.on('connection', socket => {
                 roomStore.leaveRoom(roomName, socket.userID);
             }
         }
+    });
+
+    socket.on('getBreakoutRooms', (roomName) => {
+        const room = roomStore.getRoom(roomName);
+        const breakoutRooms = roomStore.getBreakoutRoomsForRoom(roomName);
+        const transformedBreakoutRooms = breakoutRooms.map((aRoom) => {
+            let newRoom = { ...aRoom };
+            newRoom.connectedUsers = Array.from(aRoom.connectedUsers);
+            return newRoom;
+        });
+
+        io.to(room.owner).emit('currentBreakoutRooms', transformedBreakoutRooms);
     });
 
 });

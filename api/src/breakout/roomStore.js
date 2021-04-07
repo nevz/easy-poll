@@ -1,34 +1,36 @@
-class Room{
-    constructor(roomName, owner, parentRoomName, pollId=undefined){
-        this.parent = parentRoomName
+class Room {
+    constructor(roomName, owner, parentRoomName, pollId = undefined) {
+        this.parent = parentRoomName;
         this.roomName = roomName;
         this.owner = owner;
         this.connectedUsers = new Set();
         this.pollId = pollId;
+        this.breakoutRooms = [];
     }
 }
 
 /* abstract */ class RoomStore {
-    newRoom(roomName, ownerId, parentRoomName) {}
-    getRoom(roomName) {}
-    getUsers(roomName) {}
-    joinRoom(roomName, userId) {}
-    leaveRoom(roomName, userId) {}
-    setPoll(roomName, pollId) {}
-    getPoll(roomName, pollId) {}
-    newUser(userId) {}
+    newRoom(roomName, ownerId, parentRoomName) { }
+    getRoom(roomName) { }
+    getUsers(roomName) { }
+    joinRoom(roomName, userId) { }
+    leaveRoom(roomName, userId) { }
+    setPoll(roomName, pollId) { }
+    getPoll(roomName, pollId) { }
+    newUser(userId) { }
+    getBreakoutRoomsForRoom(roomName) { }
 
-  }
-  
-  class InMemoryRoomStore extends RoomStore {
+}
+
+class InMemoryRoomStore extends RoomStore {
     constructor() {
         super();
         this.rooms = new Map(); //stores roomId -> Room
         this.users = new Map(); // stores userId -> [rooms]
     }
-  
 
-    newUser(userId){
+
+    newUser(userId) {
         this.users.set(userId, new Set());
     }
 
@@ -38,23 +40,23 @@ class Room{
      * @param {str} ownerId the id of the owner of the room
      * @param {str} parentRoomName the name of the room that generated this one
      */
-    newRoom(roomName, ownerId, parentRoomName, pollId=undefined) {
+    newRoom(roomName, ownerId, parentRoomName, pollId = undefined) {
         let room = new Room(roomName, ownerId, parentRoomName, pollId);
         this.rooms.set(roomName, room);
-        if(ownerId){
+        if (ownerId) {
             room.connectedUsers.add(ownerId);
             this.users.get(ownerId).add(roomName);
         }
         return room;
     }
 
-    getRoom(roomName){
+    getRoom(roomName) {
         return this.rooms.get(roomName);
     }
 
-    joinRoom(roomName, userId){
+    joinRoom(roomName, userId) {
         let roomToJoin = this.rooms.get(roomName);
-        if(roomToJoin === undefined){
+        if (roomToJoin === undefined) {
             console.log('creating new room')
             return this.newRoom(roomName, userId);
         }
@@ -70,33 +72,46 @@ class Room{
         const roomToLeave = this.rooms.get(roomName);
         roomToLeave.connectedUsers.delete(userId);
         this.users.get(userId).delete(roomName);
-        if(roomToLeave.connectedUsers.size === 0){
+        if (roomToLeave.connectedUsers.size === 0) {
             this.rooms.delete(roomName);
         }
         //this.rooms.set(roomName, roomToLeave);
     }
 
-    getAllRooms(){
+    getAllRooms() {
         return [...this.rooms.values()];
     }
 
 
-    getRoomsForUser(userId){
+    getRoomsForUser(userId) {
         return this.users.get(userId);
     }
 
 
     setPoll(roomName, pollId) {
-        this.getRoom(roomName).pollId=pollId;
+        this.getRoom(roomName).pollId = pollId;
     }
 
-    getPoll(roomName){
+    getPoll(roomName) {
         return this.getRoom(roomName).pollId;
     }
 
-    getUsers(roomName){
+    getUsers(roomName) {
         return this.rooms.get(roomName).connectedUsers;
     }
-  }
-  
-export { InMemoryRoomStore }; 
+
+    getBreakoutRoomsForRoom(roomName) {
+        let breakoutRooms = []
+        for(let name of this.getRoom(roomName).breakoutRooms){
+            const room = this.getRoom(name)
+            if(room){
+                breakoutRooms.push(room);
+            }
+        }
+        return breakoutRooms;
+    }
+
+
+}
+
+export { InMemoryRoomStore };

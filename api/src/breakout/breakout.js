@@ -132,6 +132,8 @@ function sendToBreakout(socket, roomName, distribution, roomStore, pollId) {
             console.log('sending user ' + userID + ' to breakout room ' + breakoutRoomName);
         }
     }
+
+    roomStore.getRoom(roomName).breakoutRooms = breakoutRoomNames;
     socket.emit('roomsCreated', breakoutRoomNames);
 }
 

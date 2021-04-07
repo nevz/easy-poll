@@ -18,4 +18,3 @@ serviceWorker.unregister();
 
 export * from './NewPoll';
 export * from './Poll';
-export * from './TestJitsi';
