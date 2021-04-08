@@ -19,9 +19,10 @@ function createRoomsBySize(groupSize, userIDs, smartBreakoutOption, poll) {
 }
 
 /**
- * 
- * @param {*} numberOfGroups quantity of groups to be created
- * @param {*} userIDs array containing all user ids
+ * Creates a number of groups depending on the numberofgroups property
+ * @param {int} numberOfGroups quantity of groups to be created
+ * @param {Array<String>} userIDs array containing all user ids
+ * @returns {Array} 
  */
 function createRoomsByQuantity(numberOfGroups, userIDs, smartBreakoutOption, poll) {
     if (smartBreakoutOption === 'sameAnswers') {
@@ -35,6 +36,13 @@ function createRoomsByQuantity(numberOfGroups, userIDs, smartBreakoutOption, pol
     }
 }
 
+/**
+ * This function distributes the users in a random way
+ * @param {int} numberOfGroups approximately how many groups will be created
+ * @param {Array<String>} userIDs array containing all user ids
+ * @param {Poll} poll not used for this function
+ * @returns {Array<Array<String>>} An array that shows how the groups will be distributed
+ */
 function randomDistribution(numberOfGroups, userIDs, poll) {
     if (numberOfGroups === 0) numberOfGroups = 1;
     let groupCounter = 0;
@@ -51,14 +59,19 @@ function randomDistribution(numberOfGroups, userIDs, poll) {
     return distribution;
 }
 
-
+/**
+ * This function puts users who had the same answer on the poll together
+ * @param {int} numberOfGroups approximately how many groups will be created
+ * @param {Array<String>} userIDs array containing all user ids
+ * @param {Poll} poll the poll used for distributing the users
+ * @returns {Array<Array<String>>} An array that shows how the groups will be distributed
+ */
 function sameAnswerDistribution(numberOfGroups, userIDs, poll) {
     if (numberOfGroups === 0) numberOfGroups = 1;
-    const groupSize = Math.floor(userIDs.length / numberOfGroups);
+    const groupSize = Math.max(Math.floor(userIDs.length / numberOfGroups),1);
     const answers = poll.votes;
     let distribution = [];
     let buckets = separateByAnswers(userIDs, poll);
-    let groupCounter = 0;
     let previousNumberOfGroups = 0;
     for (let bucket of buckets) {
         let groupCounter = previousNumberOfGroups;
@@ -78,7 +91,13 @@ function sameAnswerDistribution(numberOfGroups, userIDs, poll) {
     return distribution;
 }
 
-
+/**
+ * This function tries to put users who had different answers together
+ * @param {int} numberOfGroups approximately how many groups will be created
+ * @param {Array<String>} userIDs array containing all user ids
+ * @param {Poll} poll the poll used for distributing the users
+ * @returns {Array<Array<String>>} An array that shows how the groups will be distributed
+ */
 function differentAnswersDistribution(numberOfGroups, userIDs, poll) {
     if (numberOfGroups === 0) numberOfGroups = 1;
 
@@ -100,6 +119,12 @@ function differentAnswersDistribution(numberOfGroups, userIDs, poll) {
 
 }
 
+/**
+ * Utility function that puts users who had the same answer in the poll in the same array
+ * @param {*} userIDs the users to separate
+ * @param {*} poll the poll used for separating users
+ * @returns {Array<Array<String>>} The users grouped together based on their answers, users who didn't answer are put in the last array
+ */
 function separateByAnswers(userIDs, poll) {
     const answers = poll.votes;
     const numberOfBuckets = poll.alternatives.length + 1;
@@ -118,18 +143,28 @@ function separateByAnswers(userIDs, poll) {
 }
 
 
-
+/**
+ * Maybe this function shouldn't go here but i didn't know where else to put it
+ * Sends a message to each user, telling them which room to go to
+ * @param {socket} socket the socket sending the message, normally it's the owner of the room (maybe verify this in the future for security)
+ * @param {string} roomName the name of the room that's being split
+ * @param {Array<Array<string>>} distribution Each sub-array contains all the user IDs of a breakout room
+ * @param {RoomStore} roomStore the room store, used to save the breakout rooms in memory
+ * @param {string} pollId the pollId, used to persist the poll to the breakout rooms
+ */
 function sendToBreakout(socket, roomName, distribution, roomStore, pollId) {
     let roomCounter = 0;
     const breakoutRoomNames = [];
     for (let group of distribution) {
-        roomCounter++;
-        const breakoutRoomName = roomName + 'easyFlipRoom' + roomCounter;
-        breakoutRoomNames.push(breakoutRoomName);
-        const newRoom = roomStore.newRoom(breakoutRoomName, undefined, roomName, pollId);
-        for (let userID of group) {
-            socket.to(userID).emit('notifyBreakout', { breakoutRoomName: breakoutRoomName, originalRoomName: roomName });
-            console.log('sending user ' + userID + ' to breakout room ' + breakoutRoomName);
+        if(group.length>0){
+            roomCounter++;
+            const breakoutRoomName = roomName + 'easyFlipRoom' + roomCounter;
+            breakoutRoomNames.push(breakoutRoomName);
+            const newRoom = roomStore.newRoom(breakoutRoomName, undefined, roomName, pollId);
+            for (let userID of group) {
+                socket.to(userID).emit('notifyBreakout', { breakoutRoomName: breakoutRoomName, originalRoomName: roomName });
+                console.log('sending user ' + userID + ' to breakout room ' + breakoutRoomName);
+            }
         }
     }
 
@@ -157,6 +192,7 @@ function shuffle(array) {
     return array;
 }
 
+//shows the distribution in an readable way
 function showDistribution(distribution, poll) {
     let i = 0;
     console.log("the distribution is ");
