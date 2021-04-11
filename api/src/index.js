@@ -115,6 +115,8 @@ io.on('connection', socket => {
                 roomStore.leaveRoom(roomName, socket.userID);
             }
 
+            roomStore.removeUser(socket.userID);
+
             // update the connection status of the session
             sessionStore.saveSession(socket.sessionID, {
                 userID: socket.userID,
@@ -151,7 +153,7 @@ io.on('connection', socket => {
 
     socket.on('sendToBreakout', (roomName, size, breakoutOption, smartBreakoutOption) => {
 
-        const users = Array.from(roomStore.getUsers(roomName)).filter(x => { return x !== socket.userID; });;
+        const users = Array.from(roomStore.getUsers(roomName)).filter(x => { return x !== socket.userID; });
         const pollId = roomStore.getPoll(roomName);
 
         if (pollId) {
